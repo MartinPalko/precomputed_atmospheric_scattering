@@ -1,3 +1,6 @@
 output/**
+bin/**
+platform/windows/external/**
+platform/windows/_intermediate/**
 *.glsl.inc
 
