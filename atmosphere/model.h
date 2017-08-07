@@ -306,7 +306,7 @@ class Model {
   static constexpr double kLambdaG = 550.0;
   static constexpr double kLambdaB = 440.0;
 
- private:
+ public:
   typedef std::array<double, 3> vec3;
   typedef std::array<float, 9> mat3;
 
