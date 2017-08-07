@@ -3,7 +3,7 @@ cmake_minimum_required (VERSION 3.5)
 macro(make_absolute files)
 	set (_out)
 	foreach(file ${${files}})
-		get_filename_component(file_abs ${file} ABSOLUTE)	
+		get_filename_component(file_abs ${file} ABSOLUTE)
 		LIST(APPEND _out ${file_abs})
 	endforeach()
 	set (${files} ${_out})
@@ -46,6 +46,16 @@ make_absolute(FREEGLUT_LIBS)
 set (FREEGLUT_DLL ${FREEGLUT}bin/x64/freeglut.dll)
 make_absolute(FREEGLUT_DLL)
 
+set (LIBTIFF ${EXT}libtiff/)
+set (LIBTIFF_INCLUDES ${LIBTIFF}include)
+make_absolute(LIBTIFF_INCLUDES)
+set (LIBTIFF_LIBS ${LIBTIFF}lib/libtiff.lib)
+set (LIBTIFF_DEF ${LIBTIFF}lib/libtiff.def)
+make_absolute(LIBTIFF_LIBS)
+
+set(OPTIONPARSER_INCLUDES ${ROOT}external/optionparser)
+make_absolute(OPTIONPARSER_INCLUDES)
+
 set (CREATE_GLSL_INC ${PLATFORM_WIN_DIR}create_glsl_inc.bat)
 
 macro(set_output_dir OUTPUTDIR)
@@ -84,8 +94,6 @@ set_output_dir(${PUB_ABS})
 set(ROOT_INCLUDES ${ROOT})
 make_absolute(ROOT_INCLUDES)
 
-set(PROJ Atmosphere)
-
 set(PROJSRC ${SRC})
 
 set (DEFINITIONS
@@ -98,6 +106,8 @@ set (INCLUDES
 	${ROOT_INCLUDES}
 	${GLEW_INCLUDES}
 	${FREEGLUT_INCLUDES}
+	${LIBTIFF_INCLUDES}
+	${OPTIONPARSER_INCLUDES}
 )
 
 set (MODEL_PATH ${PROJSRC})
@@ -112,6 +122,32 @@ add_glsl_inc_cmd(${PROJSRC}definitions.glsl ${ROOT} ${GENERATED_FILES_PATH})
 add_glsl_inc_cmd(${PROJSRC}functions.glsl ${ROOT} ${GENERATED_FILES_PATH})
 source_group(Model FILES ${MODEL_FILES})
 
+set (LIBS
+	Shlwapi.lib
+	Shell32.lib
+	${GLEW_LIBS}
+	${FREEGLUT_LIBS}
+	${LIBTIFF_LIBS}
+)
+
+macro(create_project)
+	add_executable (${PROJ} ${SRC_FILES})
+
+	set_target_properties(${PROJ} PROPERTIES COMPILE_FLAGS ${DEFINITIONS})
+	set_target_properties(${PROJ} PROPERTIES INCLUDE_DIRECTORIES "${INCLUDES}")
+	set_target_properties(${PROJ} PROPERTIES DEBUG_POSTFIX "_d" )
+	set_target_properties(${PROJ} PROPERTIES RELEASE_POSTFIX "" )
+	set_target_properties(${PROJ} PROPERTIES MINSIZEREL_POSTFIX "_s" )
+	set_target_properties(${PROJ} PROPERTIES RELWITHDEBINFO_POSTFIX "_r" )
+	target_link_libraries(${PROJ} ${LIBS})
+
+	add_custom_command(TARGET ${PROJ} POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy_if_different ${GLEW_DLL} $<TARGET_FILE_DIR:${PROJ}> 
+			&& ${CMAKE_COMMAND} -E copy_if_different ${FREEGLUT_DLL} $<TARGET_FILE_DIR:${PROJ}>
+	)
+endmacro(create_project)
+
+
 set (DEMO_PATH ${SRC}demo/)
 set (DEMO_FILES
 	${DEMO_PATH}demo.cc
@@ -122,29 +158,29 @@ set (DEMO_FILES
 add_glsl_inc_cmd(${DEMO_PATH}demo.glsl ${ROOT} ${GENERATED_FILES_PATH})
 source_group(Demo FILES ${DEMO_FILES})
 
+set (PROJ Demo)
 set (SRC_FILES
 	${MODEL_FILES}
 	${DEMO_FILES}
 )
+create_project()
 
-set (LIBS
-	Shlwapi.lib
-	Shell32.lib
-	${GLEW_LIBS}
-	${FREEGLUT_LIBS}
+
+set (GEN_PATH ${SRC}atmospheregen/)
+set (GEN_FILES
+	${GEN_PATH}atmospheregen.cc
+	${GEN_PATH}atmospheregen.h
+	${GEN_PATH}atmospheregen.glsl
+	${GEN_PATH}atmospheregen_main.cc
+	${GEN_PATH}TextureSaver.cpp
+	${GEN_PATH}TextureSaver.h
 )
+add_glsl_inc_cmd(${GEN_PATH}atmospheregen.glsl ${ROOT} ${GENERATED_FILES_PATH})
+source_group(AtmosphereGen FILES ${GEN_FILES})
 
-add_executable (${PROJ} ${SRC_FILES})
-
-set_target_properties(${PROJ} PROPERTIES COMPILE_FLAGS ${DEFINITIONS})
-set_target_properties(${PROJ} PROPERTIES INCLUDE_DIRECTORIES "${INCLUDES}")
-set_target_properties(${PROJ} PROPERTIES DEBUG_POSTFIX "_d" )
-set_target_properties(${PROJ} PROPERTIES RELEASE_POSTFIX "" )
-set_target_properties(${PROJ} PROPERTIES MINSIZEREL_POSTFIX "_s" )
-set_target_properties(${PROJ} PROPERTIES RELWITHDEBINFO_POSTFIX "_r" )
-target_link_libraries(${PROJ} ${LIBS})
-
-add_custom_command(TARGET ${PROJ} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${GLEW_DLL} $<TARGET_FILE_DIR:${PROJ}> 
-		&& ${CMAKE_COMMAND} -E copy_if_different ${FREEGLUT_DLL} $<TARGET_FILE_DIR:${PROJ}>
+set (PROJ AtmosphereGen)
+set (SRC_FILES
+	${MODEL_FILES}
+	${GEN_FILES}
 )
+create_project()
