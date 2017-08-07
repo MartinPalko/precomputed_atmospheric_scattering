@@ -77,6 +77,26 @@ rename %EXT%\cmake-3.7.2-win64-x64 cmake
 del %ZIP%
 ) else echo cmake detected. skipping.
 
+REM ------------------ libtiff
+
+REM set SRC_LIB=https://sourceforge.net/projects/gnuwin32/files/tiff/3.8.2-1/tiff-3.8.2-lib.zip/download
+REM set SRC_BIN=https://sourceforge.net/projects/gnuwin32/files/tiff/3.8.2-1/tiff-3.8.2-bin.zip/download
+REM set ZIP_LIB=%EXT%\tiff-3.8.2-1-lib.zip
+REM set ZIP_BIN=%EXT%\tiff-3.8.2-1-bin.zip
+REM set DST=%EXT%\libtiff
+
+REM if not exist %EXT%\libtiff (
+REM echo Downloading libtiff lib from %SRC_LIB%...
+REM powershell -Command "Start-BitsTransfer '%SRC_LIB%' '%ZIP_LIB%'"
+REM powershell -Command "& { Add-Type -A 'System.IO.Compression.FileSystem'; [IO.Compression.ZipFile]::ExtractToDirectory('%ZIP_LIB%', '%DST%'); }"
+REM del %ZIP_LIB%
+REM echo Downloading libtiff bin from %SRC_BIN%...
+REM powershell -Command "Start-BitsTransfer '%SRC_BIN%' '%ZIP_BIN%'"
+REM powershell -Command "& { Add-Type -A 'System.IO.Compression.FileSystem'; [IO.Compression.ZipFile]::ExtractToDirectory('%ZIP_BIN%', '%DST%'); }"
+REM del %ZIP_BIN%
+REM ) else echo libtiff detected. skipping.
+
+
 :end
 if NOT '%1' == 'NOPAUSE' pause
 
